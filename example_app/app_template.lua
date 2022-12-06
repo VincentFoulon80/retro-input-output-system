@@ -5,7 +5,7 @@
 -- add any variables you want to use in you app here
 -- local myvar = "stuff"
 app = {
-    -- Initialize app, setup variables, fetch rgopi devices...
+    -- Initialize app, setup variables, fetch rios devices...
     -- return true if successfully initalized
     -- return false to quit immediately
     init = function(rios):boolean
