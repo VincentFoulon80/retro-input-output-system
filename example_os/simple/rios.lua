@@ -397,6 +397,9 @@ rios.CPU = function()
     return gdt.CPU0
 end
 
+-- APP MANAGEMENT
+
+-- keep track of the active apps and their various states
 rios.apps = {
     toInit = {},
     toRun = {},
@@ -411,6 +414,7 @@ rios.internal = {
 -- register an app to the app list
 -- rios will soon run the init function of the app
 -- then proceed to run it
+-- This function will return the app id of the provided app
 rios.registerApp = function(app):number
     rios.internal.pid_count = rios.internal.pid_count + 1
     rios.apps.toInit[rios.internal.pid_count] = app
@@ -426,19 +430,22 @@ rios.sleep = function(duration:number)
             time = rios.CPU().Time+duration,
             app = rios.apps.toRun[rios.internal.run_id]
         }
-        table.remove(rios.apps.toRun, rios.internal.run_id)
+        rios.apps.toRun[rios.internal.run_id] = nil
     end
 end
 
+-- Allow you to destroy an app on-demand by providing the app_id
+-- not-yet initialized apps will just be discarded, but sleeping 
+-- and running apps will go straight to the destroy list
 rios.destroyApp = function(app_id:number)
     if rios.apps.toInit[app_id] ~= nil then
-        table.remove(rios.apps.toInit, app_id)
+        rios.apps.toInit[app_id] = nil
     elseif rios.apps.toRun[app_id] ~= nil then
         rios.apps.toDestroy[app_id] = rios.apps.toRun[app_id]
-        table.remove(rios.apps.toRun, app_id)
+        rios.apps.toRun[app_id] = nil
     elseif rios.apps.sleeping[app_id] ~= nil then
         rios.apps.toDestroy[app_id] = rios.apps.sleeping[app_id].app
-        table.remove(rios.apps.sleeping, app_id)
+        rios.apps.sleeping[app_id] = nil
     end
 end
 
@@ -453,20 +460,20 @@ rios.runApps = function(rios)
                 rios.apps.toRun[id] = app
             end
         end
-        table.remove(rios.apps.toInit, id)
+        rios.apps.toInit[id] = nil
     end
     for id, sleeping_app in rios.apps.sleeping do
         if sleeping_app.time > rios.CPU().Time then
             rios.apps.toRun[id] = sleeping_app.app
         end
-        table.remove(rios.apps.sleeping, id)
+        rios.apps.sleeping[id] = nil
     end
     for id, app in rios.apps.toRun do
         if typeof(app.run) == "function" then
             rios.internal.run_id = id
             if not app.run(rios) then
                 rios.apps.toDestroy[id] = app
-                table.remove(rios.apps.toRun, id)
+                rios.apps.toRun[id] = nil
             end
         end
     end
@@ -475,7 +482,7 @@ rios.runApps = function(rios)
         if typeof(app.destroy) == "function" then
             app.destroy(rios)
         end
-        table.remove(rios.apps.toDestroy, id)
+        rios.apps.toDestroy[id] = nil
     end
 end
 

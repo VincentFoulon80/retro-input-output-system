@@ -243,7 +243,7 @@ app = {
         drawBalls()
         drawBricks()
         
-        dt = dt + gdt.CPU0.DeltaTime
+        dt = dt + rios.CPU().DeltaTime
         if dt > 0.032 then
             dt = 0
             updateBalls()
