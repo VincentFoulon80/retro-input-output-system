@@ -359,13 +359,16 @@ rios.apps = {
 }
 rios.internal = {
     run_id = nil,
+    pid_count = 0
 }
 
 -- register an app to the app list
 -- rios will soon run the init function of the app
 -- then proceed to run it
-rios.registerApp = function(app)
-    table.insert(rios.apps.toInit, app)
+rios.registerApp = function(app):number
+    rios.internal.pid_count = rios.internal.pid_count + 1
+    rios.apps.toInit[rios.internal.pid_count] = app
+    return rios.internal.pid_count
 end
 
 -- Makes your program sleep for a certain amount of time
@@ -373,11 +376,23 @@ end
 -- if you need to keep the feature as close as the real sleep
 rios.sleep = function(duration:number)
     if rios.internal.run_id ~= nil then
-        table.insert(rios.apps.sleeping, {
+        rios.apps.sleeping[rios.internal.run_id] = {
             time = rios.CPU().Time+duration,
             app = rios.apps.toRun[rios.internal.run_id]
-        })
-        table.remove(rios.apps.toRun[rios.internal.run_id])
+        }
+        table.remove(rios.apps.toRun, rios.internal.run_id)
+    end
+end
+
+rios.destroyApp = function(app_id:number)
+    if rios.apps.toInit[app_id] ~= nil then
+        table.remove(rios.apps.toInit, app_id)
+    elseif rios.apps.toRun[app_id] ~= nil then
+        rios.apps.toDestroy[app_id] = rios.apps.toRun[app_id]
+        table.remove(rios.apps.toRun, app_id)
+    elseif rios.apps.sleeping[app_id] ~= nil then
+        rios.apps.toDestroy[app_id] = rios.apps.sleeping[app_id].app
+        table.remove(rios.apps.sleeping, app_id)
     end
 end
 
@@ -389,14 +404,14 @@ rios.runApps = function(rios)
     for id, app in rios.apps.toInit do
         if typeof(app.init) == "function" then
             if app.init(rios) then
-                table.insert(rios.apps.toRun, app)
+                rios.apps.toRun[id] = app
             end
         end
         table.remove(rios.apps.toInit, id)
     end
     for id, sleeping_app in rios.apps.sleeping do
         if sleeping_app.time > rios.CPU().Time then
-            table.insert(rios.apps.toRun, sleeping_app.app)
+            rios.apps.toRun[id] = sleeping_app.app
         end
         table.remove(rios.apps.sleeping, id)
     end
@@ -404,7 +419,7 @@ rios.runApps = function(rios)
         if typeof(app.run) == "function" then
             rios.internal.run_id = id
             if not app.run(rios) then
-                table.insert(rios.apps.toDestroy, app)
+                rios.apps.toDestroy[id] = app
                 table.remove(rios.apps.toRun, id)
             end
         end
