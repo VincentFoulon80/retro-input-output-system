@@ -7,12 +7,10 @@ local rios = require("rios.lua")
 local app = require("ball.lua")
 
 -- init the app
-local app_running = app.init(rios)
+rios.registerApp(app)
 
 -- update function is repeated every time tick
 function update()
 	gdt.VideoChip0:Clear(color.gray)
-	if app_running then
-		app_running = app.run(rios)
-	end
+	rios.runApps(rios)
 end
