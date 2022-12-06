@@ -46,10 +46,13 @@ local balls = {}
 
 local bricks = {}
 
-local font = gdt.ROM.System.SpriteSheets["StandardFont"]
+local font = nil
 
 function getCursorPos():number
-    return math.round((slider.Value/100)*(width-cursor_w))
+    if slider ~= nil then 
+        return math.round((slider.Value/100)*(width-cursor_w))
+    end
+    return 0
 end
 
 function createBall(x:number, y:number, vx:number, vy:number)
@@ -204,6 +207,7 @@ end
 app = {
     -- Initialize app, setup variables, fetch rios devices...
     init = function(rios):boolean
+        font = rios.ROM().System.SpriteSheets["StandardFont"]
         local SCREEN = rios.const.device.SCREEN
         local MAIN = rios.const.feature.MAIN
             local SLIDER = rios.const.device.SLIDER

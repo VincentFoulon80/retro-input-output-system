@@ -346,4 +346,77 @@ rios.ROM = function()
     return gdt.ROM
 end
 
+-- return the CPU running rios
+rios.CPU = function()
+    -- todo
+end
+
+rios.apps = {
+    toInit = {},
+    toRun = {},
+    sleeping = {},
+    toDestroy = {}
+}
+rios.internal = {
+    run_id = nil,
+}
+
+-- register an app to the app list
+-- rios will soon run the init function of the app
+-- then proceed to run it
+rios.registerApp = function(app)
+    table.insert(rios.apps.toInit, app)
+end
+
+-- Makes your program sleep for a certain amount of time
+-- you may want to do a yield after calling this function
+-- if you need to keep the feature as close as the real sleep
+rios.sleep = function(duration:number)
+    if rios.internal.run_id ~= nil then
+        table.insert(rios.apps.sleeping, {
+            time = rios.CPU().Time+duration,
+            app = rios.apps.toRun[rios.internal.run_id]
+        })
+        table.remove(rios.apps.toRun[rios.internal.run_id])
+    end
+end
+
+-- execute registered apps. Also handle init and destroy
+-- The first parameter must be an instance of rios itself
+-- to prevent having unregistered functions due to using a
+-- being-constructed rios object here
+rios.runApps = function(rios)
+    for id, app in rios.apps.toInit do
+        if typeof(app.init) == "function" then
+            if app.init(rios) then
+                table.insert(rios.apps.toRun, app)
+            end
+        end
+        table.remove(rios.apps.toInit, id)
+    end
+    for id, sleeping_app in rios.apps.sleeping do
+        if sleeping_app.time > rios.CPU().Time then
+            table.insert(rios.apps.toRun, sleeping_app.app)
+        end
+        table.remove(rios.apps.sleeping, id)
+    end
+    for id, app in rios.apps.toRun do
+        if typeof(app.run) == "function" then
+            rios.internal.run_id = id
+            if not app.run(rios) then
+                table.insert(rios.apps.toDestroy, app)
+                table.remove(rios.apps.toRun, id)
+            end
+        end
+    end
+    rios.internal.run_id = nil
+    for id, app in rios.apps.toDestroy do
+        if typeof(app.destroy) == "function" then
+            app.destroy(rios)
+        end
+        table.remove(rios.apps.toDestroy, id)
+    end
+end
+
+
 return rios
