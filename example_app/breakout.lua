@@ -31,11 +31,17 @@ levels = {
 
 local video = nil
 local slider = nil
+local btnLeft = nil
+local btnRight = nil
+local btnMenu = nil
+local btnBack = nil
+local joystick = nil
 local width = 0
 local height = 0
 local brick_w = 0
 local brick_h = 0
 local cursor_w = 0
+local cursor_pos = 0
 local dt = 0
 
 local paused = false
@@ -52,7 +58,18 @@ function getCursorPos():number
     if slider ~= nil then 
         return math.round((slider.Value/100)*(width-cursor_w))
     end
-    return 0
+    if joystick ~= nil then
+        -- joystick control cursors from -2 to +2
+        cursor_pos = cursor_pos + (joystick.X/50)
+    end
+    if btnLeft ~= nil and btnLeft.ButtonState then
+        cursor_pos = cursor_pos - 2
+    end
+    if btnRight ~= nil and btnRight.ButtonState then
+        cursor_pos = cursor_pos + 2
+    end
+    cursor_pos = math.clamp(cursor_pos, 0, width-cursor_w)
+    return cursor_pos
 end
 
 function createBall(x:number, y:number, vx:number, vy:number)
@@ -210,35 +227,57 @@ app = {
         font = rios.ROM().System.SpriteSheets["StandardFont"]
         local SCREEN = rios.const.device.SCREEN
         local MAIN = rios.const.feature.MAIN
-            local SLIDER = rios.const.device.SLIDER
-                        
-            local video_id = getFirstDevice(rios, SCREEN, MAIN)
-            video = rios.getScreenDevice(video_id)
-            if video == nil then return false end
-            local video_info = rios.getDeviceInfo(video_id)
-            width = video_info.info.size.X
-            height = video_info.info.size.Y
-            if height < 24 or width < 16 then
-                -- can't guarantee that the game is playable under a height of 24px or a width of 16px
-                return false
-            end
-            brick_w = width/8
-            brick_h = height/16
-            cursor_w = width/4
-        
-            local slider_id = getFirstDevice(rios, SLIDER)
-            slider = rios.getInputDevice(slider_id)
-            bricks = {}
-            generateGame()
+        local SLIDER = rios.const.device.SLIDER
+        local JOYSTICK = rios.const.device.JOYSTICK
+        local BUTTON = rios.const.device.BUTTON
+        local BTN_LEFT = rios.const.feature.LEFT
+        local BTN_RIGHT = rios.const.feature.RIGHT
+        local BTN_MENU = rios.const.feature.MENU
+        local BTN_BACK = rios.const.feature.BACK
+                    
+        local video_id = getFirstDevice(rios, SCREEN, MAIN)
+        video = rios.getScreenDevice(video_id)
+        if video == nil then return false end
+        local video_info = rios.getDeviceInfo(video_id)
+        width = video_info.info.size.X
+        height = video_info.info.size.Y
+        if height < 24 or width < 16 then
+            -- can't guarantee that the game is playable under a height of 24px or a width of 16px
+            return false
+        end
+        brick_w = width/8
+        brick_h = height/16
+        cursor_w = width/4
+        cursor_pos = (width - cursor_w)/2
+    
+        slider = rios.getInputDevice(getFirstDevice(rios, SLIDER))
+        if slider == nil then
+            joystick = rios.getInputDevice(getFirstDevice(rios, JOYSTICK))
+            btnLeft = rios.getInputDevice(getFirstDevice(rios, BUTTON, BTN_LEFT))
+            btnRight = rios.getInputDevice(getFirstDevice(rios, BUTTON, BTN_RIGHT))
+        end
+        btnMenu = rios.getInputDevice(getFirstDevice(rios, BUTTON, BTN_MENU))
+        btnBack = rios.getInputDevice(getFirstDevice(rios, BUTTON, BTN_BACK))
+        bricks = {}
+        generateGame()
             
         return true
     end,
     -- Run one tick of the app. The OS will most of the time call this function on each tick
     -- return true if the app should continue to run
     run = function(rios):boolean
-        video.Clear(color.black)
-
-        
+        if btnMenu ~= nil and btnMenu.ButtonDown then
+            paused = not paused
+        end
+        if paused then
+            video.DrawText(vec2(0,0), font, "PAUSED", color.white, color.black)
+            if btnBack ~= nil and btnBack.ButtonDown then
+                -- quit
+                return false
+            end
+            return true
+        end
+        video.Clear(color.black)        
         drawPlayer()
         drawBalls()
         drawBricks()
@@ -284,6 +323,10 @@ app = {
     destroy = function(rios)
         video = nil
         slider = nil
+        btnLeft = nil
+        btnRight = nil
+        btnMenu = nil
+        joystick = nil
         balls = {}
         bricks = {}
     end

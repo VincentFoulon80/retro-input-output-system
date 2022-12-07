@@ -238,7 +238,7 @@ rios.const = {
         AUDIO = 5,
         -- the OS provides keyboard access
         KEYBOARD = 6,
-        -- the OS provides a joystick
+        -- the OS provides a joystick or a dpad
         JOYSTICK = 7,
         -- the OS provides a button
         -- info = {
@@ -259,11 +259,11 @@ rios.const = {
         RIGHT = 2,
         DOWN = 3,
         LEFT = 4,
-        CONFIRM = 5,
-        BACK = 6,
-        OTHER1 = 7,
-        OTHER2 = 8,
-        MENU = 9,
+        CONFIRM = 5, -- A
+        BACK = 6, -- B
+        OTHER1 = 7, -- C
+        OTHER2 = 8, -- D
+        MENU = 9, -- start button
         -- screen
         MAIN = 10,  -- largest screen
         SECONDARY = 11, -- smallest screen, used to display small info
