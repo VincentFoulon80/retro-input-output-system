@@ -1,7 +1,9 @@
--- Retro Gadgets
+-- CPU File
 
+-- load RIOS
 local rios = require("rios.lua")
-
+-- remove access to gdt outside of rios
+gdt = nil
 -- load an app to play
 -- here we load the "ball" example app
 local app = require("ball.lua")

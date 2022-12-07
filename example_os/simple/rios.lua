@@ -86,6 +86,9 @@ function mockAudio(audio:AudioChip)
     }
 end
 
+-- create a mock table mimicking VideoChip
+-- useful if you want your OS to manage part of the available screen space
+-- The functions will try to prevent drawing outside of the designated area
 function mockVideo(video:VideoChip, offset:vec2, size:vec2)
     local scrEnd = vec2(offset.X + size.X, offset.Y + size.Y)
     return {
@@ -284,7 +287,6 @@ local devices = {
 --	 info = -- table displaying informations regarding the device
 -- }
 rios.getDeviceList = function(d_type:number?, feature:number?)
-    -- todo
     list = {
         main_screen = {
             type=rios.const.device.SCREEN,
