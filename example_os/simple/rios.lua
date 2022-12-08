@@ -243,6 +243,7 @@ rios.const = {
         -- the OS provides a button
         -- info = {
         --     led:boolean -- is the button a LedButton?
+        --     screen:boolean -- is the button a ScreenButton?
         -- }
         BUTTON = 8,
         -- the OS provides a slider
@@ -307,7 +308,8 @@ rios.getDeviceList = function(d_type:number?, feature:number?)
             type=rios.const.device.BUTTON,
             feature=rios.const.feature.MENU,
             info = {
-                led=false
+                led=false,
+                screen=false,
             }
         }
     }

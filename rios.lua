@@ -243,6 +243,7 @@ rios.const = {
         -- the OS provides a button
         -- info = {
         --     led:boolean -- is the button a LedButton?
+        --     screen:boolean -- is the button a ScreenButton?
         -- }
         BUTTON = 8,
         -- the OS provides a slider
