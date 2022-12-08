@@ -447,5 +447,28 @@ rios.runApps = function(rios)
     end
 end
 
+rios.debugRunApps = function(rios)
+    function doRun()
+        rios.runApps(rios)
+    end
+    function onErr(err_msg)
+        print("== ERROR ==========")
+        print(err_msg)
+        print("-- trace ----------")
+        print(debug.traceback())
+        print("===================")
+    end
+    xpcall(doRun, onErr)
+end
+
+rios.countApps = function(rios)
+    local count = 0
+    for _ in rios.apps.toInit do count = count + 1 end
+    for _ in rios.apps.toRun do count = count + 1 end
+    for _ in rios.apps.sleeping do count = count + 1 end
+    for _ in rios.apps.toDestroy do count = count + 1 end
+    return count
+end
+
 
 return rios
