@@ -503,6 +503,9 @@ rios.runApps = function(rios)
     end
 end
 
+-- Execute registered apps in a debugging environment.
+-- see runApps for more details
+-- errors will be printed on your multitool with the traceback
 rios.debugRunApps = function(rios)
     function doRun()
         rios.runApps(rios)
@@ -517,6 +520,9 @@ rios.debugRunApps = function(rios)
     xpcall(doRun, onErr)
 end
 
+-- Count how many apps are currently running
+-- Useful to know for example if all apps have been
+-- closed.
 rios.countApps = function(rios)
     local count = 0
     for _ in rios.apps.toInit do count = count + 1 end
