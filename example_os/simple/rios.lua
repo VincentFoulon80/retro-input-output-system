@@ -378,7 +378,7 @@ rios.getScreenDevice = function(device_id)
     local d_info = rios.getDeviceInfo(device_id)
     if devices[device_id] ~= nil and d_info.type == rios.const.device.SCREEN then
         local video = devices[device_id]
-        return mockVideo(video, d_info.info.offset, info.info.size)
+        return mockVideo(video, d_info.info.offset, d_info.info.size)
     elseif devices[device_id] ~= nil and d_info.type == rios.const.device.BUTTON and d_info.info.screen == true then
         if devices[d_info.info.screenInfo.device_id] ~= nil then
             local video = devices[d_info.info.screenInfo.device_id]
