@@ -186,7 +186,8 @@ function mockVideo(video:VideoChip, offset:vec2, size:vec2)
         end,
         DrawText = function(position:vec2, fontSprite:SpriteSheet, text:string, textColor:color, backgroundColor:color)
             local position = vec2(math.clamp(position.X+offset.X, offset.X, scrEnd.X), math.clamp(position.Y+offset.Y, offset.Y, scrEnd.Y))
-            -- todo
+            local maxSize = (scrEnd.X-position.X+2)/5
+            text = string.sub(text,1,maxSize)
             return video:DrawText(position, fontSprite, text, textColor, backgroundColor)
         end,
         RasterSprite = function(position1:vec2, position2:vec2, position3:vec2, position4:vec2, spriteSheet:SpriteSheet, spriteX:number, spriteY:number, tintColor:color, backgroundColor:color)
