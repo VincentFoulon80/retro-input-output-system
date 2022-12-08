@@ -244,6 +244,11 @@ rios.const = {
         -- info = {
         --     led:boolean -- is the button a LedButton?
         --     screen:boolean -- is the button a ScreenButton?
+        --     screenInfo = { -- only available when screen=true
+        --        device_id:string -- the device_id the button is connected to
+        --        offset:vec2 -- top-left corner of the screen used by the button
+        --        size:vec2 -- size of the screen used by the button. typically 16x16
+        --    }
         -- }
         BUTTON = 8,
         -- the OS provides a slider
@@ -370,10 +375,17 @@ end
 -- You must return a mock interface, see mockVideo function above
 rios.getScreenDevice = function(device_id)
     -- minimal implementation
-    local info = rios.getDeviceInfo(device_id)
-    if devices[device_id] ~= nil and (info.type == rios.const.device.SCREEN or (info.type == rios.const.device.BUTTON and info.info.screen == true)) then
+    local d_info = rios.getDeviceInfo(device_id)
+    if devices[device_id] ~= nil and d_info.type == rios.const.device.SCREEN then
         local video = devices[device_id]
-        return mockVideo(video, vec2(info.info.offset.X,info.info.offset.Y), vec2(info.info.size.X, info.info.size.Y))
+        return mockVideo(video, d_info.info.offset, info.info.size)
+    elseif devices[device_id] ~= nil and d_info.type == rios.const.device.BUTTON and d_info.info.screen == true then
+        if devices[d_info.info.screenInfo.device_id] ~= nil then
+            local video = devices[d_info.info.screenInfo.device_id]
+            if video ~= nil then
+                return mockVideo(video, d_info.info.screenInfo.offset, d_info.info.screenInfo.size)
+            end
+        end
     end
     return nil
 end

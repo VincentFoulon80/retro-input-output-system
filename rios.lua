@@ -244,6 +244,11 @@ rios.const = {
         -- info = {
         --     led:boolean -- is the button a LedButton?
         --     screen:boolean -- is the button a ScreenButton?
+        --     screenInfo = { -- only available when screen=true
+        --        device_id:string -- the device_id the button is connected to
+        --        offset:vec2 -- top-left corner of the screen used by the button
+        --        size:vec2 -- size of the screen used by the button. typically 16x16
+        --    }
         -- }
         BUTTON = 8,
         -- the OS provides a slider
