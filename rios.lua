@@ -328,7 +328,7 @@ rios.getAudioDevice = function(device_id)
     -- todo
 end
 
--- provides a screen device (anything other than screen must return nil)
+-- provides a screen device (anything other than screen or button with screen must return nil)
 -- You must return a mock interface, see mockVideo function above
 rios.getScreenDevice = function(device_id)
     -- todo

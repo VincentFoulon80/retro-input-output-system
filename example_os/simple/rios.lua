@@ -366,12 +366,12 @@ rios.getAudioDevice = function(device_id)
     return nil
 end
 
--- provides a screen device (anything other than screen must return nil)
+-- provides a screen device (anything other than screen or button with screen must return nil)
 -- You must return a mock interface, see mockVideo function above
 rios.getScreenDevice = function(device_id)
     -- minimal implementation
     local info = rios.getDeviceInfo(device_id)
-    if devices[device_id] ~= nil and info.type == rios.const.device.SCREEN then
+    if devices[device_id] ~= nil and (info.type == rios.const.device.SCREEN or (info.type == rios.const.device.BUTTON and info.info.screen == true)) then
         local video = devices[device_id]
         return mockVideo(video, vec2(info.info.offset.X,info.info.offset.Y), vec2(info.info.size.X, info.info.size.Y))
     end
