@@ -264,9 +264,6 @@ rios.const = {
     feature = {
         NONE = 0,
         -- input
-        -- directions are also allowed for :
-        -- - joysticks (left, right)
-        -- - sliders (up, down, left, right)
         UP = 1,
         RIGHT = 2,
         DOWN = 3,
@@ -282,6 +279,27 @@ rios.const = {
     }
 }
 
+local devices = {
+    main_screen = gdt.VideoChip0,
+    sec_screen = gdt.VideoChip2,
+    audio = gdt.AudioChip0,
+    joystick = gdt.Stick0,
+    dpad = gdt.DPad0,
+    accept_btn = gdt.LedButton0,
+    back_btn = gdt.LedButton1,
+    other1_btn = gdt.LedButton2,
+    other2_btn = gdt.LedButton3,
+    menu_btn = gdt.LedButton5,
+    slider = gdt.Slider0,
+    led1 = gdt.Led0,
+    led2 = gdt.Led1,
+    led3 = gdt.Led2,
+    up_btn = gdt.LedButton7,
+    right_btn = gdt.LedButton8,
+    down_btn = gdt.LedButton9,
+    left_btn = gdt.LedButton6,
+}
+
 -- FUNCTIONS
 
 -- getDeviceList will return any device the Operating System
@@ -293,8 +311,133 @@ rios.const = {
 --	 info = -- table displaying informations regarding the device
 -- }
 rios.getDeviceList = function(d_type:number?, feature:number?)
+
+    local hresv = math.round(((gdt.Knob0.Value + 100)/200)*128)
+    local vresv = math.round(((gdt.Knob1.Value + 100)/200)*128)
     list = {
-        -- todo
+        main_screen = {
+            type=rios.const.device.SCREEN,
+            feature=rios.const.feature.MAIN,
+            info = {
+                offset = vec2(math.floor((128-hresv)/2),math.floor((128-vresv)/2)),
+                size = vec2(hresv, vresv),
+            }
+        },
+                sec_screen = {
+            type=rios.const.device.SCREEN,
+            feature=rios.const.feature.SECONDARY,
+            info = {
+                offset = vec2(0,0),
+                size = vec2(devices.sec_screen.Width, devices.sec_screen.Height),
+            }
+        },
+        audio = {
+            type=rios.const.device.AUDIO,
+            feature=rios.const.feature.NONE,
+            info = {
+                channels = 4
+            }
+        },
+        joystick = {
+                type=rios.const.device.JOYSTICK,
+                feature=rios.const.feature.UP,
+        },
+        dpad = {
+            type=rios.const.device.JOYSTICK,
+            feature=rios.const.feature.DOWN,	
+        },
+        accept_btn = {
+            type=rios.const.device.BUTTON,
+            feature=rios.const.feature.ACCEPT,
+            info = {
+                led=true,
+                screen=false,
+            }
+        },
+        back_btn = {
+            type=rios.const.device.BUTTON,
+            feature=rios.const.feature.BACK,
+            info = {
+                led=true,
+                screen=false,
+            }
+        },
+        other1_btn = {
+            type=rios.const.device.BUTTON,
+            feature=rios.const.feature.OTHER1,
+            info = {
+                led=true,
+                screen=false,
+            }
+        },
+        other2_btn = {
+            type=rios.const.device.BUTTON,
+            feature=rios.const.feature.OTHER2,
+            info = {
+                led=true,
+                screen=false,
+            }
+        },
+        menu_btn = {
+            type=rios.const.device.BUTTON,
+            feature=rios.const.feature.MENU,
+            info = {
+                led=true,
+                screen=false,
+            }
+        },
+        slider = {
+            type=rios.const.device.SLIDER,
+            feature=rios.const.feature.NONE,
+        },
+        knob = {
+            type=rios.const.device.KNOB,
+            feature=rios.const.feature.NONE,
+        },
+        led1 = {
+            type=rios.const.device.LED,
+            feature=rios.const.feature.NONE
+        },
+        led2 = {
+            type=rios.const.device.LED,
+            feature=rios.const.feature.NONE
+        },
+        led3 = {
+            type=rios.const.device.LED,
+            feature=rios.const.feature.NONE
+        },
+        up_btn = {
+            type=rios.const.device.BUTTON,
+            feature=rios.const.feature.UP,
+            info = {
+                led=true,
+                screen=false,
+            }
+        },
+        right_btn = {
+            type=rios.const.device.BUTTON,
+            feature=rios.const.feature.RIGHT,
+            info = {
+                led=true,
+                screen=false,
+            }
+        },
+        down_btn = {
+            type=rios.const.device.BUTTON,
+            feature=rios.const.feature.DOWN,
+            info = {
+                led=true,
+                screen=false,
+            }
+        },
+        left_btn = {
+            type=rios.const.device.BUTTON,
+            feature=rios.const.feature.LEFT,
+            info = {
+                led=true,
+                screen=false,
+            }
+        },
     }
     local search = {}
     for id, device in list do
@@ -330,28 +473,56 @@ end
 -- provides the given input device (anything other than input must return nil)
 -- You must return the component instance (LedButton, Slider, Knob, ...) or nil
 rios.getInputDevice = function(device_id)
-    -- todo
+    -- minimal implementation
+    local info = rios.getDeviceInfo(device_id)
+    if devices[device_id] ~= nil and (info.type == rios.const.device.KEYBOARD or info.type == rios.const.device.JOYSTICK or info.type == rios.const.device.BUTTON or info.type == rios.const.device.SLIDER or info.type == rios.const.device.SWITCH or info.type == rios.const.device.KNOB) then
+        return devices[device_id]
+    end
+    return nil
 end
 
 -- provides an audio device (anything other than audio must return nil)
 -- You must return a mock interface, see mockAudio function above
 rios.getAudioDevice = function(device_id)
-    -- todo
+    -- minimal implementation
+    local info = rios.getDeviceInfo(device_id)
+    if devices[device_id] ~= nil and info.type == rios.const.device.AUDIO then
+        return mockAudio(devices[device_id])
+    end
+    return nil
 end
 
 -- provides a screen device (anything other than screen or button with screen must return nil)
 -- You must return a mock interface, see mockVideo function above
 rios.getScreenDevice = function(device_id)
-    -- todo
+    -- minimal implementation
+    local d_info = rios.getDeviceInfo(device_id)
+    if devices[device_id] ~= nil and d_info.type == rios.const.device.SCREEN then
+        local video = devices[device_id]
+        return mockVideo(video, d_info.info.offset, d_info.info.size)
+    elseif devices[device_id] ~= nil and d_info.type == rios.const.device.BUTTON and d_info.info.screen == true then
+        if devices[d_info.info.screenInfo.device_id] ~= nil then
+            local video = devices[d_info.info.screenInfo.device_id]
+            if video ~= nil then
+                return mockVideo(video, d_info.info.screenInfo.offset, d_info.info.screenInfo.size)
+            end
+        end
+    end
+    return nil
 end
 
 -- save a file to memory
 rios.flashSave = function(file:string, table)
-    -- todo
+    -- minimal implementation
+    local data = gdt.FlashMemory0:Load()
+    data[file] = table
+    gdt.FlashMemory0:Save(data)
 end
 -- load a file from memory
 rios.flashLoad = function(file:string)
-    -- todo
+    -- minimal implementation
+    local data = gdt.FlashMemory0:Load()
+    return data[file]
 end
 
 rios.ROM = function()
@@ -360,7 +531,7 @@ end
 
 -- return the CPU running rios
 rios.CPU = function()
-    -- todo
+    return gdt.CPU0
 end
 
 -- APP MANAGEMENT
@@ -392,6 +563,7 @@ end
 -- if you need to keep the feature as close as the real sleep
 rios.sleep = function(duration:number)
     if rios.internal.run_id ~= nil then
+        print("APP went to sleep")
         rios.apps.sleeping[rios.internal.run_id] = {
             time = rios.CPU().Time+duration,
             app = rios.apps.toRun[rios.internal.run_id]
@@ -424,12 +596,16 @@ rios.runApps = function(rios)
         if typeof(app.init) == "function" then
             if app.init(rios) then
                 rios.apps.toRun[id] = app
+                print("APP started successfully")
+            else
+                print("APP did not initialize")
             end
         end
         rios.apps.toInit[id] = nil
     end
     for id, sleeping_app in rios.apps.sleeping do
         if sleeping_app.time < rios.CPU().Time then
+            print("APP woke up")
             rios.apps.toRun[id] = sleeping_app.app
             rios.apps.sleeping[id] = nil
         end
@@ -438,6 +614,7 @@ rios.runApps = function(rios)
         if typeof(app.run) == "function" then
             rios.internal.run_id = id
             if not app.run(rios) then
+                print("APP stopped itself")
                 rios.apps.toDestroy[id] = app
                 rios.apps.toRun[id] = nil
             end
@@ -447,6 +624,7 @@ rios.runApps = function(rios)
     for id, app in rios.apps.toDestroy do
         if typeof(app.destroy) == "function" then
             app.destroy(rios)
+            print("APP is now destroyed")
         end
         rios.apps.toDestroy[id] = nil
     end

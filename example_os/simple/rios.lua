@@ -485,10 +485,10 @@ rios.runApps = function(rios)
         rios.apps.toInit[id] = nil
     end
     for id, sleeping_app in rios.apps.sleeping do
-        if sleeping_app.time > rios.CPU().Time then
+        if sleeping_app.time < rios.CPU().Time then
             rios.apps.toRun[id] = sleeping_app.app
+            rios.apps.sleeping[id] = nil
         end
-        rios.apps.sleeping[id] = nil
     end
     for id, app in rios.apps.toRun do
         if typeof(app.run) == "function" then
