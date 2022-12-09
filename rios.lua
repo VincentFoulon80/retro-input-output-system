@@ -460,11 +460,13 @@ rios.debugRunApps = function(rios)
         rios.runApps(rios)
     end
     function onErr(err_msg)
+        setFgColor(31)
         print("== ERROR ==========")
         print(err_msg)
         print("-- trace ----------")
         print(debug.traceback())
         print("===================")
+        resetFgColor()
     end
     xpcall(doRun, onErr)
 end
