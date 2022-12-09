@@ -235,16 +235,15 @@ app = {
         local BTN_MENU = rios.const.feature.MENU
         local BTN_BACK = rios.const.feature.BACK
                     
-        local video_id = getFirstDevice(rios, SCREEN, MAIN)
-        video = rios.getScreenDevice(video_id)
-        if video == nil then return false end
-        local video_info = rios.getDeviceInfo(video_id)
-        width = video_info.info.size.X
-        height = video_info.info.size.Y
+        video = rios.getScreenDevice(getFirstDevice(rios, SCREEN, MAIN))
+        width = video.Width
+        height = video.Height
         if height < 24 or width < 16 then
             -- can't guarantee that the game is playable under a height of 24px or a width of 16px
             return false
         end
+        if video == nil then return false end
+
         brick_w = width/8
         brick_h = height/16
         cursor_w = width/4

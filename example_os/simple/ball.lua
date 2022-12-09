@@ -1,4 +1,11 @@
 -- Ball that bounce around on the screen
+function getFirstDevice(rios, type:number,feature:number?)
+    if rios.hasDevice(type, feature) then
+        for id,screen in rios.getDeviceList(type, feature) do
+            return id
+        end
+    end
+end
 
 local ball = {x=5,y=5, vx=2,vy=1}
 local video = nil
@@ -16,21 +23,11 @@ app = {
         local BUTTON = rios.const.device.BUTTON
 
         -- get video device
-        if rios.hasDevice(SCREEN, MAIN) then
-            for id,screen in rios.getDeviceList(SCREEN, MAIN) do
-                video = rios.getScreenDevice(id)
-                width = screen.info.size.X
-                height = screen.info.size.Y
-                break
-            end
-        end
+        video = rios.getScreenDevice(getFirstDevice(rios, SCREEN, MAIN))
+   
         -- get button device if available, not mandatory
-        if rios.hasDevice(BUTTON, MENU) then
-            for id,input in rios.getDeviceList(BUTTON, MENU) do
-                menu_button = rios.getInputDevice(id)
-                break
-            end
-        end
+        menu_button = rios.getInputDevice(rios, BUTTON, MENU)
+
         -- success if we got a screen
         return video ~= nil
     end,
@@ -40,10 +37,10 @@ app = {
         -- move the ball and make it bounce the edge
         ball.x = ball.x + ball.vx
         ball.y = ball.y + ball.vy
-        if ball.x <= 0 or ball.x >= width then 
+        if ball.x <= 0 or ball.x >= video.Width then 
                 ball.vx = -ball.vx
         end
-        if ball.y <= 0 or ball.y >= height then
+        if ball.y <= 0 or ball.y >= video.Height then
                 ball.vy = -ball.vy	
         end
 

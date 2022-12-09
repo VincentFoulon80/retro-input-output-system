@@ -92,6 +92,8 @@ end
 function mockVideo(video:VideoChip, offset:vec2, size:vec2)
     local scrEnd = vec2(offset.X + size.X, offset.Y + size.Y)
     return {
+        Width = size.X,
+        Height = size.Y,
         Clear = function(color:color)
             return video:FillRect(offset, scrEnd, color)
         end,
@@ -262,6 +264,9 @@ rios.const = {
     feature = {
         NONE = 0,
         -- input
+        -- directions are also allowed for :
+        -- - joysticks (left, right)
+        -- - sliders (up, down, left, right)
         UP = 1,
         RIGHT = 2,
         DOWN = 3,
