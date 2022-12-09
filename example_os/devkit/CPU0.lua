@@ -12,16 +12,18 @@ local sec_video = gdt.VideoChip2
 local reset_btn = gdt.LedButton4
 local pause_btn = gdt.LedButton10
 local step_btn = gdt.LedButton11
+local speed_knob = gdt.Knob4
 local font = gdt.ROM.System.SpriteSheets["StandardFont"]
 local paused = false
 local paused_time = 0
 local reload_timeout = 0
 local appid = nil
+local tick_count = 0
 gdt = nil
 
 
 -- load your APP here:
-local ball = require("new_app.lua")
+local ball = require("ball.lua")
 
 
 -- init devkit's default background
@@ -30,6 +32,10 @@ sec_video:Clear(color.gray)
 
 -- update function is repeated every time tick
 function update()
+    tick_count = tick_count + 1
+    local speed = math.round(((speed_knob.Value + 100)/200)*8)-1
+    local will_run = speed == 7 or tick_count % 2^(6-speed) == 0
+    
     -- handle pause 
     if pause_btn.ButtonDown then
         paused = not paused
@@ -39,10 +45,10 @@ function update()
     
     -- run the app
     -- if the app stopped somehow, reload it
-    if not paused or step_btn.ButtonDown then
-      if rios.countApps(rios) == 0 and reload_timeout == 0 then
+    if (will_run and not paused) or step_btn.ButtonDown then
+        if rios.countApps(rios) == 0 and reload_timeout == 0 then
             reload_timeout = 60
-      elseif reload_timeout > 0 then
+        elseif reload_timeout > 0 then
             reload_timeout = reload_timeout-1
             main_video:Clear(color.gray)
             main_video:DrawText(vec2(0,0), font, "LAUNCHING APP IN "..reload_timeout, color.black, color.gray)
@@ -51,13 +57,15 @@ function update()
                 main_video:Clear(color.gray)
             end
         end
-
-      rios.debugRunApps(rios)
+        rios.debugRunApps(rios)
+        if speed == 7 then
+            rios.debugRunApps(rios)
+        end
     end
     if reset_btn.ButtonDown and appid ~= nil then
         main_video:Clear(color.gray)
         main_video:DrawText(vec2(0,0), font, "DESTROYING APP", color.black, color.gray)
-      rios.destroyApp(appid)
+        rios.destroyApp(appid)
         appid = nil
     end
 end
