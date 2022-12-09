@@ -24,9 +24,11 @@ app = {
 
         -- get video device
         video = rios.getScreenDevice(getFirstDevice(rios, SCREEN, MAIN))
+        ball.x = video.Width/2
+        ball.y = video.Height/2
    
         -- get button device if available, not mandatory
-        menu_button = rios.getInputDevice(rios, BUTTON, MENU)
+        menu_button = rios.getInputDevice(getFirstDevice(rios, BUTTON, MENU))
 
         -- success if we got a screen
         return video ~= nil

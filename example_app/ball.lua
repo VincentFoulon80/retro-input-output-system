@@ -24,10 +24,11 @@ app = {
 
         -- get video device
         video = rios.getScreenDevice(getFirstDevice(rios, SCREEN, MAIN))
-        width = screen.info.size.X
-        height = screen.info.size.Y
+        ball.x = video.Width/2
+        ball.y = video.Height/2
+   
         -- get button device if available, not mandatory
-        menu_button = rios.getInputDevice(rios, BUTTON, MENU)
+        menu_button = rios.getInputDevice(getFirstDevice(rios, BUTTON, MENU))
 
         -- success if we got a screen
         return video ~= nil
@@ -38,10 +39,10 @@ app = {
         -- move the ball and make it bounce the edge
         ball.x = ball.x + ball.vx
         ball.y = ball.y + ball.vy
-        if ball.x <= 0 or ball.x >= width then 
+        if ball.x <= 0 or ball.x >= video.Width then 
                 ball.vx = -ball.vx
         end
-        if ball.y <= 0 or ball.y >= height then
+        if ball.y <= 0 or ball.y >= video.Height then
                 ball.vy = -ball.vy	
         end
 
