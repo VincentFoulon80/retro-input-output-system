@@ -15,6 +15,7 @@ end
 -- add any variables you want to use in you app here
 local video = nil
 local font = nil
+local menu = nil
 
 app = {
     -- Initialize app, setup variables, fetch rios devices...
@@ -50,6 +51,7 @@ app = {
         -- uninit your app here
         video = nil
         font = nil
+        menu = nil
     end
 }
 
