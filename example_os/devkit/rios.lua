@@ -264,6 +264,9 @@ rios.const = {
     feature = {
         NONE = 0,
         -- input
+        -- directions are also allowed for :
+        -- - joysticks (left, right)
+        -- - sliders (up, down, left, right)
         UP = 1,
         RIGHT = 2,
         DOWN = 3,
@@ -290,6 +293,7 @@ local devices = {
     other1_btn = gdt.LedButton2,
     other2_btn = gdt.LedButton3,
     menu_btn = gdt.LedButton5,
+    knob = gdt.Knob3,
     slider = gdt.Slider0,
     led1 = gdt.Led0,
     led2 = gdt.Led1,
@@ -323,7 +327,7 @@ rios.getDeviceList = function(d_type:number?, feature:number?)
                 size = vec2(hresv, vresv),
             }
         },
-                sec_screen = {
+        sec_screen = {
             type=rios.const.device.SCREEN,
             feature=rios.const.feature.SECONDARY,
             info = {
@@ -340,11 +344,11 @@ rios.getDeviceList = function(d_type:number?, feature:number?)
         },
         joystick = {
                 type=rios.const.device.JOYSTICK,
-                feature=rios.const.feature.UP,
+                feature=rios.const.feature.LEFT,
         },
         dpad = {
             type=rios.const.device.JOYSTICK,
-            feature=rios.const.feature.DOWN,	
+            feature=rios.const.feature.LEFT,
         },
         confirm_btn = {
             type=rios.const.device.BUTTON,
@@ -479,6 +483,72 @@ rios.getInputDevice = function(device_id)
         return devices[device_id]
     end
     return nil
+end
+
+-- provides a mock joystick that combines multiple in one
+-- The joysticks must share the same feature (NONE, LEFT or RIGHT)
+rios.getAllJoysticks = function(feature:number)
+    local joysticks = {}
+    for id, info in rios.getDeviceList(JOYSTICK, feature) do
+        table.insert(joysticks, rios.getInputDevice(id))
+    end
+    return {
+        getX = function()
+            for _,joystick in joysticks do
+                if joystick.X ~= 0 then return joystick.X end
+            end
+            return 0
+        end,
+        getY = function()
+            for _,joystick in joysticks do
+                if joystick.Y ~= 0 then return joystick.Y end
+            end
+            return 0
+        end
+    }
+end
+
+-- provides a mock button that combines multiple in one
+-- The buttons must share the same feature (UP, DOWN, ACCEPT, MENU, etc...)
+rios.getAllButtons = function(feature:number)
+    local buttons = {}
+    for id, info in rios.getDeviceList(BUTTON, feature) do
+        table.insert(buttons, rios.getInputDevice(id))
+    end
+    return {
+        isButtonDown = function()
+            for _,button in buttons do
+                if button.ButtonDown then return true end
+            end
+            return false
+        end,
+        isButtonUp = function()
+            for _,button in buttons do
+                if button.ButtonUp then return true end
+            end
+            return false
+        end,
+        getButtonState = function()
+            for _,button in buttons do
+                if button.ButtonState then return true end
+            end
+            return false
+        end,
+        setledColor = function(color:color)
+            for _,button in buttons do
+                if button.LedColor ~= nil then
+                    button.LedColor = color
+                end
+            end
+        end,
+        setLedState = function(state:boolean)
+            for _,button in buttons do
+                if button.LedState ~= nil then
+                    button.LedState = state
+                end
+            end
+        end
+    }
 end
 
 -- provides an audio device (anything other than audio must return nil)

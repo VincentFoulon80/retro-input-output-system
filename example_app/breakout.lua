@@ -58,14 +58,13 @@ function getCursorPos():number
     if slider ~= nil then 
         return math.round((slider.Value/100)*(width-cursor_w))
     end
-    if joystick ~= nil then
-        -- joystick control cursors from -2 to +2
-        cursor_pos = cursor_pos + (joystick.X/50)
-    end
-    if btnLeft ~= nil and btnLeft.ButtonState then
+    -- joystick control cursors from -2 to +2
+    cursor_pos = cursor_pos + (joystick.getX()/50)
+
+    if btnLeft.getButtonState() then
         cursor_pos = cursor_pos - 2
     end
-    if btnRight ~= nil and btnRight.ButtonState then
+    if btnRight.getButtonState() then
         cursor_pos = cursor_pos + 2
     end
     cursor_pos = math.clamp(cursor_pos, 0, width-cursor_w)
@@ -230,8 +229,8 @@ app = {
         local SLIDER = rios.const.device.SLIDER
         local JOYSTICK = rios.const.device.JOYSTICK
         local BUTTON = rios.const.device.BUTTON
-        local BTN_LEFT = rios.const.feature.LEFT
-        local BTN_RIGHT = rios.const.feature.RIGHT
+        local LEFT = rios.const.feature.LEFT
+        local RIGHT = rios.const.feature.RIGHT
         local BTN_MENU = rios.const.feature.MENU
         local BTN_BACK = rios.const.feature.BACK
                     
@@ -251,12 +250,13 @@ app = {
     
         slider = rios.getInputDevice(getFirstDevice(rios, SLIDER))
         if slider == nil then
-            joystick = rios.getInputDevice(getFirstDevice(rios, JOYSTICK))
-            btnLeft = rios.getInputDevice(getFirstDevice(rios, BUTTON, BTN_LEFT))
-            btnRight = rios.getInputDevice(getFirstDevice(rios, BUTTON, BTN_RIGHT))
+            joystick = rios.getAllJoysticks(LEFT)
+            btnLeft = rios.getAllButtons(LEFT)
+            btnRight = rios.getAllButtons(RIGHT)
         end
-        btnMenu = rios.getInputDevice(getFirstDevice(rios, BUTTON, BTN_MENU))
-        btnBack = rios.getInputDevice(getFirstDevice(rios, BUTTON, BTN_BACK))
+
+        btnMenu = rios.getAllButtons(BTN_MENU)
+        btnBack = rios.getAllButtons(BTN_BACK)
         bricks = {}
         generateGame()
             
@@ -265,12 +265,12 @@ app = {
     -- Run one tick of the app. The OS will most of the time call this function on each tick
     -- return true if the app should continue to run
     run = function(rios):boolean
-        if btnMenu ~= nil and btnMenu.ButtonDown then
+        if btnMenu.isButtonDown() then
             paused = not paused
         end
         if paused then
             video.DrawText(vec2(0,0), font, "PAUSED", color.white, color.black)
-            if btnBack ~= nil and btnBack.ButtonDown then
+            if btnBack.isButtonDown() then
                 -- quit
                 return false
             end

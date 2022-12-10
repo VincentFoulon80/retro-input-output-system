@@ -333,6 +333,72 @@ rios.getInputDevice = function(device_id)
     -- todo
 end
 
+-- provides a mock joystick that combines multiple in one
+-- The joysticks must share the same feature (NONE, LEFT or RIGHT)
+rios.getAllJoysticks = function(feature:number)
+    local joysticks = {}
+    for id, info in rios.getDeviceList(JOYSTICK, feature) do
+        table.insert(joysticks, rios.getInputDevice(id))
+    end
+    return {
+        getX = function()
+            for _,joystick in joysticks do
+                if joystick.X ~= 0 then return joystick.X end
+            end
+            return 0
+        end,
+        getY = function()
+            for _,joystick in joysticks do
+                if joystick.Y ~= 0 then return joystick.Y end
+            end
+            return 0
+        end
+    }
+end
+
+-- provides a mock button that combines multiple in one
+-- The buttons must share the same feature (UP, DOWN, ACCEPT, MENU, etc...)
+rios.getAllButtons = function(feature:number)
+    local buttons = {}
+    for id, info in rios.getDeviceList(BUTTON, feature) do
+        table.insert(buttons, rios.getInputDevice(id))
+    end
+    return {
+        isButtonDown = function()
+            for _,button in buttons do
+                if button.ButtonDown then return true end
+            end
+            return false
+        end,
+        isButtonUp = function()
+            for _,button in buttons do
+                if button.ButtonUp then return true end
+            end
+            return false
+        end,
+        getButtonState = function()
+            for _,button in buttons do
+                if button.ButtonState then return true end
+            end
+            return false
+        end,
+        setledColor = function(color:color)
+            for _,button in buttons do
+                if button.LedColor ~= nil then
+                    button.LedColor = color
+                end
+            end
+        end,
+        setLedState = function(state:boolean)
+            for _,button in buttons do
+                if button.LedState ~= nil then
+                    button.LedState = state
+                end
+            end
+        end
+    }
+end
+
 -- provides an audio device (anything other than audio must return nil)
 -- You must return a mock interface, see mockAudio function above
 rios.getAudioDevice = function(device_id)
