@@ -1,5 +1,9 @@
 # RIOS API
 
+- [OS API](#os-api)
+- [CONSTANTS](#constants)
+- [APP API](#app-api)
+
 ## OS API
 
 - [countApps](#rioscountappsrios)
