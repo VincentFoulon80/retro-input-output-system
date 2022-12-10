@@ -18,8 +18,9 @@ end
 -- create a mock table mimicking AudioChip
 -- useful if you want your OS to keep audio channels for itself
 -- and still provide an interface to apps
-function mockAudio(audio:AudioChip)
+function mockAudio(audio:AudioChip, channelCount:number)
     return {
+        ChannelsCount = channelCount,
         GetSpectrumData = function(channel:number, samplesCount:number)
             channel = rerouteChannel(channel)
             return audio:GetSpectrumData(channel, samplesCount)
@@ -288,8 +289,8 @@ rios.const = {
 -- let you operate, filtered by type and/or feature.
 -- a device must be of the following schema:
 -- [device_id] = {
---   type = -- any value of rgopi.const.device
---   feature = -- any value of rgopi.const.feature
+--   type = -- any value of rios.const.device
+--   feature = -- any value of rios.const.feature
 --	 info = -- table displaying informations regarding the device
 -- }
 rios.getDeviceList = function(d_type:number?, feature:number?)
@@ -308,7 +309,7 @@ rios.getDeviceList = function(d_type:number?, feature:number?)
 end
 
 -- check if a given device is provided by the OS
--- parameter must be from rgopi.const.device
+-- parameter must be from rios.const.device
 rios.hasDevice = function(d_type:number, feature:number?):boolean
     -- minimal implementation
     for id, device in rios.getDeviceList() do
@@ -382,7 +383,7 @@ rios.getAllButtons = function(feature:number)
             end
             return false
         end,
-        setledColor = function(color:color)
+        setLedColor = function(color:color)
             for _,button in buttons do
                 if button.LedColor ~= nil then
                     button.LedColor = color
