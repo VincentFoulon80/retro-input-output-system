@@ -92,6 +92,7 @@ end
 -- The functions will try to prevent drawing outside of the designated area
 function mockVideo(video:VideoChip, offset:vec2, size:vec2)
     local scrEnd = vec2(offset.X + size.X, offset.Y + size.Y)
+    local fullscreen = (offset.X == 0 and offset.Y == 0 and video.Width == size.X and video.Height == size.Y)
     return {
         Width = size.X,
         Height = size.Y,
@@ -105,105 +106,132 @@ function mockVideo(video:VideoChip, offset:vec2, size:vec2)
             end
         end,
         DrawPointGrid = function(gridOffset:vec2, dotsDistance:number, color:color)
-            -- todo
+            -- only allow this function in fullscreen context
+            if fullscreen then
+                return video:DrawPointGrid(gridOffset, dotsDistance, color)
+            end
             -- disabled, as there is no way to prevent writing over the entire screen
+            -- TODO: rewrite this function manually to fill the subscreen
         end,
         DrawLine = function(start:vec2, target:vec2, color:color)
-            local start = vec2(start.X+offset.X, start.Y+offset.Y)
-            local target = vec2(target.X+offset.X,target.Y+offset.Y)
-            -- clamp coordinates inside the boundaries of the screen
-            -- find coordinates with modified lerp formula
-            -- (start.X-offset.X)/(start.X-target.X)
-            function iLerpX(s, t, o)
-                local coef = (s.X-o.X)/(s.X-t.X)
-                return vec2(o.X, math.round(s.Y+coef*(t.Y-s.Y)))
-            end
-            function iLerpY(s, t, o)
-                local coef = (s.Y-o.Y)/(s.Y-t.Y)
-                return vec2(math.round(s.X+coef*(t.X-s.X)), o.Y)
-            end
-            if start.X < offset.X then
-                start = iLerpX(start, target, offset)
-            end
-            if start.Y < offset.Y then
-                start = iLerpY(start, target, offset)
-            end
-            if start.X > scrEnd.X then 
-                start = iLerpX(start, target, scrEnd)
-            end
-            if start.Y > scrEnd.Y then
-                start = iLerpY(start, target, scrEnd)
-            end
-            if target.X < offset.X then
-                target = iLerpX(target, start, offset)
-            end
-            if target.Y < offset.Y then
-                target = iLerpY(target, start, offset)
-            end
-            if target.X > scrEnd.X then
-                target = iLerpX(target, start, scrEnd)
-            end
-            if target.Y > scrEnd.Y then
-                target = iLerpY(target, start, scrEnd)
+            if not fullscreen then
+                start = vec2(start.X+offset.X, start.Y+offset.Y)
+                target = vec2(target.X+offset.X,target.Y+offset.Y)
+                -- clamp coordinates inside the boundaries of the screen
+                -- find coordinates with modified lerp formula
+                -- (start.X-offset.X)/(start.X-target.X)
+                function iLerpX(s, t, o)
+                    local coef = (s.X-o.X)/(s.X-t.X)
+                    return vec2(o.X, math.round(s.Y+coef*(t.Y-s.Y)))
+                end
+                function iLerpY(s, t, o)
+                    local coef = (s.Y-o.Y)/(s.Y-t.Y)
+                    return vec2(math.round(s.X+coef*(t.X-s.X)), o.Y)
+                end
+                if start.X < offset.X then
+                    start = iLerpX(start, target, offset)
+                end
+                if start.Y < offset.Y then
+                    start = iLerpY(start, target, offset)
+                end
+                if start.X > scrEnd.X then 
+                    start = iLerpX(start, target, scrEnd)
+                end
+                if start.Y > scrEnd.Y then
+                    start = iLerpY(start, target, scrEnd)
+                end
+                if target.X < offset.X then
+                    target = iLerpX(target, start, offset)
+                end
+                if target.Y < offset.Y then
+                    target = iLerpY(target, start, offset)
+                end
+                if target.X > scrEnd.X then
+                    target = iLerpX(target, start, scrEnd)
+                end
+                if target.Y > scrEnd.Y then
+                    target = iLerpY(target, start, scrEnd)
+                end
             end
             return video:DrawLine(start, target, color)
         end,
         DrawCircle = function(position:vec2, radius:number, color:color)
-            local position = vec2(math.clamp(position.X+offset.X, offset.X, scrEnd.X), math.clamp(position.Y+offset.Y, offset.Y, scrEnd.Y))
-            -- todo
+            if not fullscreen then
+                position = vec2(math.clamp(position.X+offset.X, offset.X+radius-1, scrEnd.X-radius-1), math.clamp(position.Y+offset.Y, offset.Y+radius-1, scrEnd.Y-radius-1))
+                -- TODO: clip the circle out of the subscreen part instead of clamping coordinates
+            end
             return video:DrawCircle(position, radius, color)
         end,
         FillCircle = function(position:vec2, radius:number, color:color)
-            local position = vec2(math.clamp(position.X+offset.X, offset.X, scrEnd.X), math.clamp(position.Y+offset.Y, offset.Y, scrEnd.Y))
-            -- todo
+            if not fullscreen then
+                position = vec2(math.clamp(position.X+offset.X, offset.X+radius-1, scrEnd.X-radius-1), math.clamp(position.Y+offset.Y, offset.Y+radius-1, scrEnd.Y-radius-1))
+                -- TODO: clip the circle out of the subscreen part instead of clamping coordinates
+            end
             return video:FillCircle(position, radius, color)
         end,
         DrawRect = function(position1:vec2, position2:vec2, color:color)
-            local position1 = vec2(math.clamp(position1.X+offset.X, offset.X, scrEnd.X), math.clamp(position1.Y+offset.Y, offset.Y, scrEnd.Y))
-            local position2 = vec2(math.clamp(position2.X+offset.X, offset.X, scrEnd.X), math.clamp(position2.Y+offset.Y, offset.Y, scrEnd.Y))
+            if not fullscreen then
+                position1 = vec2(math.clamp(position1.X+offset.X, offset.X, scrEnd.X), math.clamp(position1.Y+offset.Y, offset.Y, scrEnd.Y))
+                position2 = vec2(math.clamp(position2.X+offset.X, offset.X, scrEnd.X), math.clamp(position2.Y+offset.Y, offset.Y, scrEnd.Y))
+            end
             return video:DrawRect(position1, position2, color)
         end,
         FillRect = function(position1:vec2, position2:vec2, color:color)
-            local position1 = vec2(math.clamp(position1.X+offset.X, offset.X, scrEnd.X), math.clamp(position1.Y+offset.Y, offset.Y, scrEnd.Y))
-            local position2 = vec2(math.clamp(position2.X+offset.X, offset.X, scrEnd.X), math.clamp(position2.Y+offset.Y, offset.Y, scrEnd.Y))
+            if not fullscreen then
+                position1 = vec2(math.clamp(position1.X+offset.X, offset.X, scrEnd.X), math.clamp(position1.Y+offset.Y, offset.Y, scrEnd.Y))
+                position2 = vec2(math.clamp(position2.X+offset.X, offset.X, scrEnd.X), math.clamp(position2.Y+offset.Y, offset.Y, scrEnd.Y))
+            end
             return video:FillRect(position1, position2, color)
         end,
         DrawTriangle = function(position1:vec2, position2:vec2, position3:vec2, color:color)
-            local position1 = vec2(math.clamp(position1.X+offset.X, offset.X, scrEnd.X), math.clamp(position1.Y+offset.Y, offset.Y, scrEnd.Y))
-            local position2 = vec2(math.clamp(position2.X+offset.X, offset.X, scrEnd.X), math.clamp(position2.Y+offset.Y, offset.Y, scrEnd.Y))
-            local position3 = vec2(math.clamp(position3.X+offset.X, offset.X, scrEnd.X), math.clamp(position3.Y+offset.Y, offset.Y, scrEnd.Y))
-            -- todo
+            if not fullscreen then
+                position1 = vec2(math.clamp(position1.X+offset.X, offset.X, scrEnd.X), math.clamp(position1.Y+offset.Y, offset.Y, scrEnd.Y))
+                position2 = vec2(math.clamp(position2.X+offset.X, offset.X, scrEnd.X), math.clamp(position2.Y+offset.Y, offset.Y, scrEnd.Y))
+                position3 = vec2(math.clamp(position3.X+offset.X, offset.X, scrEnd.X), math.clamp(position3.Y+offset.Y, offset.Y, scrEnd.Y))
+                -- TODO: clip the triangle out of subscreen instead of clamping the coordinates
+            end
             return video:DrawTriangle(position1, position2, position3, color)
         end,
         FillTriangle = function(position1:vec2, position2:vec2, position3:vec2, color:color)
-            local position1 = vec2(math.clamp(position1.X+offset.X, offset.X, scrEnd.X), math.clamp(position1.Y+offset.Y, offset.Y, scrEnd.Y))
-            local position2 = vec2(math.clamp(position2.X+offset.X, offset.X, scrEnd.X), math.clamp(position2.Y+offset.Y, offset.Y, scrEnd.Y))
-            local position3 = vec2(math.clamp(position3.X+offset.X, offset.X, scrEnd.X), math.clamp(position3.Y+offset.Y, offset.Y, scrEnd.Y))
-            -- todo
+            if not fullscreen then
+                position1 = vec2(math.clamp(position1.X+offset.X, offset.X, scrEnd.X), math.clamp(position1.Y+offset.Y, offset.Y, scrEnd.Y))
+                position2 = vec2(math.clamp(position2.X+offset.X, offset.X, scrEnd.X), math.clamp(position2.Y+offset.Y, offset.Y, scrEnd.Y))
+                position3 = vec2(math.clamp(position3.X+offset.X, offset.X, scrEnd.X), math.clamp(position3.Y+offset.Y, offset.Y, scrEnd.Y))
+                -- TODO: clip the triangle out of subscreen instead of clamping the coordinates
+            end
             return video:FillTriangle(position1, position2, position3, color)
         end,
         DrawSprite = function(position:vec2, spriteSheet:SpriteSheet, spriteX:number, spriteY:number, tintColor:color, backgroundColor:color)
-            local position = vec2(math.clamp(position.X+offset.X, offset.X, scrEnd.X), math.clamp(position.Y+offset.Y, offset.Y, scrEnd.Y))
-            -- todo
+            if not fullscreen then
+                position = vec2(math.clamp(position.X+offset.X, offset.X, scrEnd.X), math.clamp(position.Y+offset.Y, offset.Y, scrEnd.Y))
+                -- TODO: clip the sprite out of subscreen instead of clamping the coordinates
+            end
             return video:DrawSprite(position, spriteSheet, spriteX, spriteY, tintColor, backgroundColor)
         end,
         DrawText = function(position:vec2, fontSprite:SpriteSheet, text:string, textColor:color, backgroundColor:color)
-            local position = vec2(math.clamp(position.X+offset.X, offset.X, scrEnd.X), math.clamp(position.Y+offset.Y, offset.Y, scrEnd.Y))
-            local maxSize = (scrEnd.X-position.X+2)/5
-            text = string.sub(text,1,maxSize)
+            if not fullscreen then
+                position = vec2(math.clamp(position.X+offset.X, offset.X, scrEnd.X), math.clamp(position.Y+offset.Y, offset.Y, scrEnd.Y))
+                local maxSize = (scrEnd.X-position.X+2)/5
+                text = string.sub(text,1,maxSize)
+                -- TODO: clip the text vertically
+            end
             return video:DrawText(position, fontSprite, text, textColor, backgroundColor)
         end,
         RasterSprite = function(position1:vec2, position2:vec2, position3:vec2, position4:vec2, spriteSheet:SpriteSheet, spriteX:number, spriteY:number, tintColor:color, backgroundColor:color)
-            local position1 = vec2(math.clamp(position1.X+offset.X, offset.X, scrEnd.X), math.clamp(position1.Y+offset.Y, offset.Y, scrEnd.Y))
-            local position2 = vec2(math.clamp(position2.X+offset.X, offset.X, scrEnd.X), math.clamp(position2.Y+offset.Y, offset.Y, scrEnd.Y))
-            local position3 = vec2(math.clamp(position3.X+offset.X, offset.X, scrEnd.X), math.clamp(position3.Y+offset.Y, offset.Y, scrEnd.Y))
-            local position4 = vec2(math.clamp(position4.X+offset.X, offset.X, scrEnd.X), math.clamp(position4.Y+offset.Y, offset.Y, scrEnd.Y))
-            -- todo
+            if not fullscreen then
+                position1 = vec2(math.clamp(position1.X+offset.X, offset.X, scrEnd.X), math.clamp(position1.Y+offset.Y, offset.Y, scrEnd.Y))
+                position2 = vec2(math.clamp(position2.X+offset.X, offset.X, scrEnd.X), math.clamp(position2.Y+offset.Y, offset.Y, scrEnd.Y))
+                position3 = vec2(math.clamp(position3.X+offset.X, offset.X, scrEnd.X), math.clamp(position3.Y+offset.Y, offset.Y, scrEnd.Y))
+                position4 = vec2(math.clamp(position4.X+offset.X, offset.X, scrEnd.X), math.clamp(position4.Y+offset.Y, offset.Y, scrEnd.Y))
+                -- TODO: clip the sprite out of subscreen instead of clamping the coordinates
+            end
             return video:RasterSprite(position1, position2, position3, position4, spriteSheet, spriteX, spriteY, tintColor, backgroundColor)
         end,
         DrawRenderBuffer = function(position:vec2, renderBuffer:RenderBuffer, width:number, height:number)
-            local position = vec2(math.clamp(position.X+offset.X, offset.X, scrEnd.X), math.clamp(position.Y+offset.Y, offset.Y, scrEnd.Y))
-            -- todo
+            if not fullscreen then
+                position = vec2(math.clamp(position.X+offset.X, offset.X, scrEnd.X), math.clamp(position.Y+offset.Y, offset.Y, scrEnd.Y))
+                -- TODO: clip the buffer out of subscreen instead of clamping the coordinates
+            end
             return video:DrawRenderBuffer(position, renderBuffer, width, height)
         end,
     }
@@ -371,7 +399,7 @@ end
 -- The joysticks must share the same feature (NONE, LEFT or RIGHT)
 rios.getAllJoysticks = function(feature:number)
     local joysticks = {}
-    for id, info in rios.getDeviceList(JOYSTICK, feature) do
+    for id, info in rios.getDeviceList(rios.const.device.JOYSTICK, feature) do
         table.insert(joysticks, rios.getInputDevice(id))
     end
     return {
@@ -394,7 +422,7 @@ end
 -- The buttons must share the same feature (UP, DOWN, ACCEPT, MENU, etc...)
 rios.getAllButtons = function(feature:number)
     local buttons = {}
-    for id, info in rios.getDeviceList(BUTTON, feature) do
+    for id, info in rios.getDeviceList(rios.const.device.BUTTON, feature) do
         table.insert(buttons, rios.getInputDevice(id))
     end
     return {
