@@ -83,6 +83,7 @@ being-constructed rios object here
   - [SLIDER](#slider)
   - [SWITCH](#switch)
   - [KNOB](#knob)
+  - [SEGMENTS](#segments)
 - [Feature](#feature)
 
 RIOS Provides a set of constants to use between APPS and OSes. The rules must be strictly followed in order to keep full compatibility with RIOS.
@@ -198,6 +199,16 @@ The OS provides a knob
 
 **Features:** `NONE`
 
+#### SEGMENTS
+
+The OS provides a segment display
+**Features:** `NONE`
+```lua
+info = {
+    amount:number -- how many digit does this segment display has?
+    colon:bool -- has the segment display a colon?
+```
+
 ### Feature
 
 Features are secondary information used by devices to define their role
@@ -234,6 +245,8 @@ Features are secondary information used by devices to define their role
   - [setLedColor](#buttonssetledcolorcolorcolor)
 - [getAudioDevice](#riosgetaudiodevicedevice_id)
 - [getScreenDevice](#riosgetscreendevicedevice_id)
+- [getLcdDevice](#riosgetlcddevicedevice_id)
+- [getSegmentDevice](#riosgetsegmentdevicedevice_id)
 - [flashSave](#riosflashsavefilestring-table)
 - [flashLoad](#riosflashloadfilestring)
 
@@ -383,6 +396,30 @@ Every functions are still in place, you just need to use `.` instead of `:` when
 
 Note: the mock video is not entirely finished. While every functions is implemented, they don't all prevent overflowing out of the screen yet.
 The most basic ones are done though, like Line and Rectangle. DrawText stops overflowing correctly on the right side of the screen, but not on the bottom.
+
+### rios.getLcdDevice(device_id)
+
+Get a LCD device from a given device ID.
+
+The device ID must be of type LCD, else `nil` will be returned
+
+**Parameters:**
+- `device_id`: An ID from the device list
+
+**Returns:**
+An instance of the LCD
+
+### rios.getSegmentDevice(device_id)
+
+Get a Segment display device from a given device ID.
+
+The device ID must be of type SEGMENTS, else `nil` will be returned
+
+**Parameters:**
+- `device_id`: An ID from the device list
+
+**Returns:**
+An instance of the SegmentDisplay
 
 ### rios.flashSave(file:string, table)
 
