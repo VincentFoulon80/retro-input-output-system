@@ -288,7 +288,13 @@ rios.const = {
         -- the OS provide a switch
         SWITCH = 10,
         -- the OS provide a knob
-        KNOB = 11
+        KNOB = 11,
+        -- the OS provide segment displays
+        -- info = {
+        --    amount:number -- how many digit does this segment display has?
+        --    colon:bool -- has the segment display a colon?
+        --}
+        SEGMENTS = 12,
     },
     feature = {
         NONE = 0,
@@ -587,6 +593,26 @@ rios.getAudioDevice = function(device_id)
     local d_info = rios.getDeviceInfo(device_id)
     if devices[device_id] ~= nil and d_info.type == rios.const.device.AUDIO then
         return mockAudio(devices[device_id], d_info.info.channels)
+    end
+    return nil
+end
+
+-- provides a LCD device (anything other than an lcd must return nil)
+-- You must return the component instance (Lcd) or nil
+rios.getLcdDevice = function(device_id)
+    local d_info = rios.getDeviceInfo(device_id)
+    if devices[device_id] ~= nil and d_info.type == rios.const.device.LCD then
+        return devices[device_id]
+    end
+    return nil
+end
+
+-- provides a Segment device (anything other than a SegmentDisplay must return nil)
+-- You must return the component instance (SegmentDisplay) or nil
+rios.getSegmentDevice = function(device_id)
+    local d_info = rios.getDeviceInfo(device_id)
+    if devices[device_id] ~= nil and d_info.type == rios.const.device.SEGMENTS then
+        return devices[device_id]
     end
     return nil
 end

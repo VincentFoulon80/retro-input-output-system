@@ -288,7 +288,13 @@ rios.const = {
         -- the OS provide a switch
         SWITCH = 10,
         -- the OS provide a knob
-        KNOB = 11
+        KNOB = 11,
+        -- the OS provide segment displays
+        -- info = {
+        --    amount:number -- how many digit does this segment display has?
+        --    colon:bool -- has the segment display a colon?
+        --}
+        SEGMENTS = 12,
     },
     feature = {
         NONE = 0,
@@ -437,6 +443,18 @@ end
 -- provides a screen device (anything other than screen or button with screen must return nil)
 -- You must return a mock interface, see mockVideo function above
 rios.getScreenDevice = function(device_id)
+    -- todo
+end
+
+-- provides a LCD device (anything other than an lcd must return nil)
+-- You must return the component instance (Lcd) or nil
+rios.getLcdDevice = function(device_id)
+    -- todo
+end
+
+-- provides a Segment device (anything other than a SegmentDisplay must return nil)
+-- You must return the component instance (SegmentDisplay) or nil
+rios.getSegmentDevice = function(device_id)
     -- todo
 end
 
