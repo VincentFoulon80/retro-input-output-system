@@ -153,7 +153,7 @@ app.run = function(rios):boolean
     video.Clear(col_bg)
     local index = 0
     for _,appEntry in app.appList do
-        local ellipsis = rios.ROM().User.SpriteSheets["selector spritesheet"]
+        local ellipsis = rios.ROM().User.SpriteSheets["selector spritesheet.png"]
         local y_idx = math.floor(index/grid_width)
         local x_idx = index-(y_idx*grid_width)
         local fg = col_fg
