@@ -1,30 +1,32 @@
--- APP Selector
--- Display a list of APPs, and allow the user to select one from the list
+--[[ App Selector
+Display a list of apps, and allow the user to select one from the list
 
--- CONFIGURATION
--- here you can change the colors used in this menu
--- also you'll need to fill a table with apps to display in you CPU file
--- ```
--- local myapp = require("myapp.lua")
--- local anotherapp = require("anotherapp.lua")
--- local selector = require("selector.lua")
--- selector.appList = {
---     {name="MyAppName", app=myapp},
---     {name="Another App", app=anotherapp},
---     -- etc...
--- }
-local col_fg = color.white
-local col_bg = color.black
+CONFIGURATION
+here you can change the colors used in this menu
+also you'll need to fill a table with apps to display in you CPU file
+**IMPORTANT: Icons are optional, and should be 16x16 or less.**
+app entry format: {name="name",app=luafile,icon={"image",x,y}},
+local myapp = require("myapp.lua")
+local anotherapp = require("anotherapp.lua")
+local selector = require("selector.lua")
+selector.appList = {
+    {name="MyAppName", app=myapp, icon={"myapp.png",0,0}},
+    {name="Another App", app=anotherapp, icon={"anotherapp's icon.png",0,0}},
+    -- etc...
+]]
+local col_fg = Color(255,255,255)
+local col_tile = Color(50,50,50)
+local col_bg = Color(5,4,3)
 local outer_spacing = 8 -- minimum is 8
 local inner_spacing = 4
-local tile_size = 48
+local tile_size = 72
 tile_size=vec2(tile_size,tile_size+7+inner_spacing)
 local max_len = math.floor((tile_size.x-inner_spacing)/5)
-local auto_grid = true -- should grid width be auto-calculated (recommended)
+local auto_grid = true -- should grid width be auto-calculated (not currently recommended)
 local grid_width = 2 -- set custom grid width here
 function gridCalc(video)
 	if auto_grid then
-		grid_width = math.floor(video.Width/((outer_spacing*2)+tile_size.x))
+		grid_width = math.floor(video.Width/((outer_spacing*1.5)+tile_size.x))
 	end
 end
 local always_run_splashscreen = false
@@ -86,13 +88,13 @@ app = {
         video = rios.getScreenDevice(getFirstDeviceId(rios, SCREEN, MAIN))
 				gridCalc(video)
         if video.Height < (outer_spacing*2)+(tile_size.y) and video.Width < (outer_spacing*2)+(tile_size.x) then
-						logError("Screen device requires at least "..((outer_spacing*2)+(tile_size.y)).."px of height and at least "..((outer_spacing*(grid_width+1))+(tile_size.x*grid_width)).."px of width. Reajust spacing or increase the screen size.")
+						logError("Screen device requires at least "..((outer_spacing*2)+(tile_size.y)).."px of height and at least "..((outer_spacing*2)+(tile_size.x)).."px of width. Reajust spacing or increase the screen size.")
 						return false
         elseif video.Height < (outer_spacing*2)+(tile_size.y) then
 						logError("Screen device requires at least "..((outer_spacing*2)+(tile_size.y)).."px of height. Reajust spacing or increase the screen size.")
 						return false
 				elseif video.Width < (outer_spacing*2)+(tile_size.x) then
-						logError("Screen device requires at least "..((outer_spacing*(grid_width+1))+(tile_size.x*grid_width)).."px of width. Reajust spacing or increase the screen size.")
+						logError("Screen device requires at least "..((outer_spacing*2)+(tile_size.x)).."px of width. Reajust spacing or increase the screen size.")
 						return false
         end
         audio = rios.getAudioDevice(getFirstDeviceId(rios, AUDIO))
@@ -151,35 +153,65 @@ app.run = function(rios):boolean
     end
     -- run your app
     video.Clear(col_bg)
+		local scroll_down = false
     local index = 0
     for _,appEntry in app.appList do
         local ellipsis = rios.ROM().User.SpriteSheets["selector spritesheet.png"]
         local y_idx = math.floor(index/grid_width)
         local x_idx = index-(y_idx*grid_width)
         local fg = col_fg
-        local bg = col_bg
+        local bg = col_tile
 				local none = ColorRGBA(0,0,0,0)
-        local position = vec2(x_idx*(outer_spacing+tile_size.x),(y_idx-scroll)*(outer_spacing+tile_size.y))
-        if index == cursor then 
-            fg = col_bg
-            bg = col_fg
-            video.FillRect(vec2(position.x,position.y), vec2(position.x+tile_size.x-1, position.y+tile_size.y), bg)
+				local imagesize = vec2(tile_size.x-(inner_spacing*2)-1,tile_size.x-(inner_spacing*2)-1)
+        local position = vec2(0,((y_idx-scroll)*(outer_spacing+tile_size.y))+outer_spacing)
+				position = vec2((x_idx*(outer_spacing+tile_size.x)+(video.Width/2))-(((tile_size.x*grid_width)+(outer_spacing*(grid_width-1)))/2),position.y)
+				local imagepos = position+vec2(inner_spacing,inner_spacing)
+				if scroll_down == false then
+						scroll_down = (position.y+tile_size.y)>video.Height
+				end
+        if position.y >= 0 and position.y <= video.Height-outer_spacing then
+						video.FillRect(position, position+tile_size-vec2(1,1), bg)
+						video.FillRect(imagepos,imagepos+imagesize,col_bg)
+						if appEntry.icon ~= nil then
+								local icon = rios.ROM().User.SpriteSheets[appEntry.icon[1]]
+								local rs = math.floor((imagesize.x+1)/16)*16
+								local pos = imagepos
+								local decimal = ((imagesize.x+1)/16)%1
+								if decimal ~= 0 then
+										pos = (imagepos+((imagesize+vec2(1,1))/2))-(vec2(rs,rs)/2)
+								end
+								video.RasterSprite(pos,pos+vec2(rs,0),pos+vec2(rs,rs),pos+vec2(0,rs),icon,appEntry.icon[2],appEntry.icon[3],color.white,col_bg)
+						end
+						if string.len(appEntry.name) > max_len then
+							--	local xpos = ((position.x+tile_size.x)-(max_len*5))/2
+								local xpos = (position.x+(tile_size.x/2))-(max_len*5/2)
+								video.DrawText((vec2(xpos,position.y+((outer_spacing-8)/2)+tile_size.x)), font, string.sub(appEntry.name,1,max_len-1), fg, bg)
+								video.DrawSprite(vec2((xpos)+(5*(max_len-1)),position.y+((outer_spacing-8)/2)+tile_size.x),ellipsis,0,0,fg,none)
+						else
+							--	local xpos = ((position.x+tile_size.x)-(string.len(appEntry.name)*5))/2
+								local xpos = (position.x+(tile_size.x/2))-(string.len(appEntry.name)*5/2)
+            		video.DrawText(vec2(xpos,position.y+((outer_spacing-8)/2)+tile_size.x), font, appEntry.name, fg, bg)
+						end
+        end
+				if index == cursor then 
+ 						video.DrawRect(position, vec2(position.x+tile_size.x-1, position.y+tile_size.y-1), fg)
             if btn_confirm.ButtonDown then
                 rios.registerApp(appEntry.app)
                 return false
             end
         end
-        if position.y >= 0 and position.y <= video.Height-outer_spacing then
-						if string.len(appEntry.name) > max_len then
-								video.DrawText(vec2(position.x+(inner_spacing/2),position.y+((outer_spacing-8)/2)+tile_size.x), font, string.sub(appEntry.name,1,max_len-1), fg, bg)
-								video.DrawSprite(vec2(position.x+(inner_spacing/2)+(5*(max_len-1)),position.y+((outer_spacing-8)/2)+tile_size.x),ellipsis,0,0,fg,none)
-						else
-            		video.DrawText(vec2(position.x+(inner_spacing/2),position.y+((outer_spacing-8)/2)+tile_size.x), font, appEntry.name, fg, bg)
-						end
-        end
         index = index + 1
-
     end
+		if scroll_down then
+				local arrows = rios.ROM().User.SpriteSheets["selector spritesheet.png"]
+				local pos = vec2((video.Width/2)-4,(video.Height-1)-(outer_spacing/2)-4)
+				video.DrawSprite(pos,arrows,1,0,color.white,color.clear)
+		end
+		if scroll > 0 then
+				local arrows = rios.ROM().User.SpriteSheets["selector spritesheet.png"]
+				local pos = vec2((video.Width/2)-4,(outer_spacing/2)-3)
+				video.DrawSprite(pos,arrows,2,0,color.white,color.clear)
+		end
 
     if ((btn_right ~= nil and btn_right.ButtonDown) or isJoystickRight()) and cursor < index-1 then
         cursor = cursor + 1
