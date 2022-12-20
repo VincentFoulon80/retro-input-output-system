@@ -14,7 +14,8 @@ selector.appList = {
     {name="Another App", app=anotherapp, icon={"anotherapp's icon.png",0,0}},
     -- etc...
 ]]
-local col_fg = Color(255,255,255)
+local col_ui = Color(255,255,255)
+local col_fg = Color(200,200,200)
 local col_tile = Color(50,50,50)
 local col_bg = Color(5,4,3)
 local outer_spacing = 8 -- minimum is 8
@@ -205,12 +206,12 @@ app.run = function(rios):boolean
 		if scroll_down then
 				local arrows = rios.ROM().User.SpriteSheets["selector spritesheet.png"]
 				local pos = vec2((video.Width/2)-4,(video.Height-1)-(outer_spacing/2)-4)
-				video.DrawSprite(pos,arrows,1,0,color.white,color.clear)
+				video.DrawSprite(pos,arrows,1,0,col_ui,color.clear)
 		end
 		if scroll > 0 then
 				local arrows = rios.ROM().User.SpriteSheets["selector spritesheet.png"]
 				local pos = vec2((video.Width/2)-4,(outer_spacing/2)-3)
-				video.DrawSprite(pos,arrows,2,0,color.white,color.clear)
+				video.DrawSprite(pos,arrows,2,0,col_ui,color.clear)
 		end
 
     if ((btn_right ~= nil and btn_right.ButtonDown) or isJoystickRight()) and cursor < index-1 then
