@@ -208,6 +208,13 @@ function mockVideo(video:VideoChip, offset:vec2, size:vec2)
             end
             return video:DrawSprite(position, spriteSheet, spriteX, spriteY, tintColor, backgroundColor)
         end,
+        DrawCustomSprite = function(position:vec2, SpriteSheet:SpriteSheet, spriteOffset:vec2, spriteSize:vec2, tintColor:color, backgroundColor:color)
+            if not fullscreen then
+                position = vec2(math.clamp(position.X+offset.X, offset.X, scrEnd.X), math.clamp(position.Y+offset.Y, offset.Y, scrEnd.Y))
+                -- TODO: clip the sprite out of subscreen instead of clamping the coordinates
+            end
+            return video:DrawCustomSprite(position, SpriteSheet, spriteOffset, spriteSize, tintColor, backgroundColor)
+        end,
         DrawText = function(position:vec2, fontSprite:SpriteSheet, text:string, textColor:color, backgroundColor:color)
             if not fullscreen then
                 position = vec2(math.clamp(position.X+offset.X, offset.X, scrEnd.X), math.clamp(position.Y+offset.Y, offset.Y, scrEnd.Y))
@@ -226,6 +233,16 @@ function mockVideo(video:VideoChip, offset:vec2, size:vec2)
                 -- TODO: clip the sprite out of subscreen instead of clamping the coordinates
             end
             return video:RasterSprite(position1, position2, position3, position4, spriteSheet, spriteX, spriteY, tintColor, backgroundColor)
+        end,
+        RasterCustomSprite = function(position1:vec2, position2:vec2, position3:vec2, position4:vec2, spriteSheet:SpriteSheet, spriteOffset:vec2, spriteSize:vec2, tintColor:color, backgroundColor:color)
+            if not fullscreen then
+                position1 = vec2(math.clamp(position1.X+offset.X, offset.X, scrEnd.X), math.clamp(position1.Y+offset.Y, offset.Y, scrEnd.Y))
+                position2 = vec2(math.clamp(position2.X+offset.X, offset.X, scrEnd.X), math.clamp(position2.Y+offset.Y, offset.Y, scrEnd.Y))
+                position3 = vec2(math.clamp(position3.X+offset.X, offset.X, scrEnd.X), math.clamp(position3.Y+offset.Y, offset.Y, scrEnd.Y))
+                position4 = vec2(math.clamp(position4.X+offset.X, offset.X, scrEnd.X), math.clamp(position4.Y+offset.Y, offset.Y, scrEnd.Y))
+                -- TODO: clip the sprite out of subscreen instead of clamping the coordinates
+            end
+            return video:RasterCustomSprite(position1, position2, position3, position4, spriteSheet, spriteOffset, spriteSize, tintColor, backgroundColor)
         end,
         DrawRenderBuffer = function(position:vec2, renderBuffer:RenderBuffer, width:number, height:number)
             if not fullscreen then
