@@ -203,8 +203,20 @@ function mockVideo(video:VideoChip, offset:vec2, size:vec2)
         end,
         DrawSprite = function(position:vec2, spriteSheet:SpriteSheet, spriteX:number, spriteY:number, tintColor:color, backgroundColor:color)
             if not fullscreen then
+                local ix = 0
+                local iy = 0
+                if position.X < 0 then
+                    ix = math.abs(position.X)
+                end
+                if position.Y < 0 then
+                    iy = math.abs(position.Y)
+                end
+
                 position = vec2(math.clamp(position.X+offset.X, offset.X, scrEnd.X), math.clamp(position.Y+offset.Y, offset.Y, scrEnd.Y))
-                -- TODO: clip the sprite out of subscreen instead of clamping the coordinates
+                local dx = math.min((scrEnd.X - position.X+ix)/16, 1)
+                local dy = math.min((scrEnd.Y - position.Y+iy)/16, 1)
+
+                return video:DrawCustomSprite(position, spriteSheet, vec2(16*spriteX+ix, 16*spriteY+iy), vec2(16*dx-ix,16*dy-iy), tintColor, backgroundColor)
             end
             return video:DrawSprite(position, spriteSheet, spriteX, spriteY, tintColor, backgroundColor)
         end,
